@@ -17,7 +17,7 @@ export default function Header() {
             {/* Logo */}
             <div className="mr-2 sm:mr-8 lg:mr-16">
               <Link href="/" className="inline-block">
-                <img src="/img/logo.png" alt="logo" className="w-16 h-16 sm:w-22 sm:h-22 " />
+                <img src="/img/logo.png" alt="logo" className="w-18 h-16 sm:w-25 sm:h-22 " />
                 {/* <Image src="/img/logo.png" alt="logo" width={88} height={88}></Image> */}
               </Link>
             </div>
@@ -70,7 +70,6 @@ export default function Header() {
           </div>
         </div>
       </div>
-      This is header
     </header>
   );
 }

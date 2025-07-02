@@ -23,6 +23,12 @@ const products = [
     img: "/img/product/tra-xanh.png",
     price: 59000,
   },
+  {
+    id: "5",
+    name: "Xà Bông Dược Liệu Cam Thảo (100g)",
+    img: "/img/product/cam-thao.jpg",
+    price: 59000,
+  },
 ];
 
 export default products;

@@ -7,7 +7,7 @@ interface Product {
 
 export default function ProductItem({ product }: { product: Product }) {
   return (
-    <div className="p-6 border-[1px] border-gray-200 rounded-xl">
+    <div className="pt-6 pr-6 pb-1 pl-6 border-[1px] border-gray-200 rounded-xl">
       <a href="/san-pham" className="cursor-pointer">
         <img src={product.img} className="mb-3" />
       </a>
@@ -18,7 +18,7 @@ export default function ProductItem({ product }: { product: Product }) {
         </a>
       </h3>
       <div className="text-orange-700 font-semibold mb-2 text-lg">
-        {product.price}
+        {product.price.toLocaleString("de-DE")}
         <sup>đ</sup>
       </div>
     </div>

@@ -9,7 +9,7 @@ export default function ProductItem({ product }: { product: Product }) {
   return (
     <div className="p-6 border-[1px] border-gray-200 rounded-xl">
       <a href="/san-pham" className="cursor-pointer">
-        <img src="/img/product/kho-qua.png" className="mb-3" />
+        <img src={product.img} className="mb-3" />
       </a>
       <h3 className="font-medium mb-3">
         <a href="/san-pham" className="cursor-pointer">

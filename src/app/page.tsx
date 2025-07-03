@@ -14,7 +14,7 @@ export default function Home() {
       <div className="">
         {/* Banner section */}
         <section>
-          <img src="/img/banner.jpg" className="w-full h-[400px]"></img>
+          <img src="/img/banner-new.jpg" className="w-full"></img>
         </section>
 
         {/* Product section */}
@@ -34,7 +34,7 @@ export default function Home() {
             {/* Combo product */}
             <div className="mb-4 text-2xl font-medium">Combo Lành (Gói 2 và 3 bánh)</div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="mb-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {comboes.map((product) => (
                 <ProductItem key={product.id} product={product} imgRatio={"[5/4]"} />
               ))}

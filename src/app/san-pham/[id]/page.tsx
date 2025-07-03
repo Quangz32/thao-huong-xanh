@@ -122,25 +122,31 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
               </em>
             </p>
             {/* Specification (Table) */}
-            <h2 className="mb-2 text-2xl font-semibold">Thông số sản phẩm</h2>
-            <div>
-              <table className="w-full mb-4 border border-gray-300 border-collapse text-justify">
-                <thead className="">
-                  <tr className="bg-[#738136]">
-                    <th className="px-4 py-2  text-white w-2/5 border border-gray-300">Thông số</th>
-                    <th className="px-4 py-2  text-white border border-gray-300">Nội dung</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(productDetail.specification).map(([key, value], index) => (
-                    <tr key={key} className={index % 2 !== 0 ? "bg-gray-100" : ""}>
-                      <td className="px-4 py-2 border border-gray-300">{key}</td>
-                      <td className="px-4 py-2 border border-gray-300">{value as string}</td>
+            {productDetail.category === "single" && (
+              <h2 className="mb-2 text-2xl font-semibold">Thông số sản phẩm</h2>
+            )}
+            {productDetail.category === "single" && (
+              <div>
+                <table className="w-full mb-4 border border-gray-300 border-collapse text-justify">
+                  <thead className="">
+                    <tr className="bg-[#738136]">
+                      <th className="px-4 py-2  text-white w-2/5 border border-gray-300">
+                        Thông số
+                      </th>
+                      <th className="px-4 py-2  text-white border border-gray-300">Nội dung</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {Object.entries(productDetail.specification).map(([key, value], index) => (
+                      <tr key={key} className={index % 2 !== 0 ? "bg-gray-100" : ""}>
+                        <td className="px-4 py-2 border border-gray-300">{key}</td>
+                        <td className="px-4 py-2 border border-gray-300">{value as string}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {/* Guide */}
             <h2 className="mt-4 text-2xl font-semibold">Hướng dẫn sử dụng</h2>

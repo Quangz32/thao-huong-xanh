@@ -12,7 +12,7 @@ const products = [
     price: 59000,
   },
   {
-    id: "xa-bong-cam",
+    id: "xa-bong-vo-cam",
     name: "Xà Bông Dược Liệu Vỏ Cam (100g)",
     img: "/img/product/cam.png",
     price: 59000,

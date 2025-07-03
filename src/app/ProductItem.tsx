@@ -5,11 +5,18 @@ interface Product {
   price: number;
 }
 
-export default function ProductItem({ product }: { product: Product }) {
+interface Props {
+  product: Product;
+  imgRatio?: String;
+}
+
+export default function ProductItem({ product, imgRatio = "square" }: Props) {
+  // if (!imgRatio) imgRatio = "square";
+
   return (
     <div className="pt-6 pr-6 pb-1 pl-6 border-[1px] border-gray-200 rounded-xl">
       <a href="/san-pham" className="cursor-pointer">
-        <img src={product.img} className="mb-3" />
+        <img src={product.img} className={`mb-3 aspect-${imgRatio}`} />
       </a>
       <h3 className="font-medium mb-3">
         <a href="/san-pham" className="cursor-pointer">

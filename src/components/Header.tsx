@@ -6,7 +6,7 @@ import Link from "next/link";
 const navItem = [
   { label: "Sản phẩm", href: "/san-pham" },
   { label: "Giới thiệu", href: "/gioi-thieu" },
-  { label: "Hỗ trợ", href: "/ho-tro" },
+  // { label: "Hỗ trợ", href: "/ho-tro" },
 ];
 export default function Header() {
   return (
@@ -28,11 +28,13 @@ export default function Header() {
                   <li key={item.href} className="mr-2">
                     <Link
                       href={item.href}
-                      className={`text-white font-medium pr-2 hover:text-orange-400 ${
+                      className={` pr-2 text-white ${
                         index < navItem.length - 1 ? "border-r-2" : ""
                       }`}
                     >
-                      {item.label}
+                      <span className="text-white font-medium hover:text-orange-400 ">
+                        {item.label}
+                      </span>
                     </Link>
                   </li>
                 ))}

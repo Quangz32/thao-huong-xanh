@@ -1,7 +1,9 @@
 "use client";
 
+import { BanIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 const navItem = [
   { label: "Sản phẩm", href: "/san-pham" },
@@ -9,6 +11,12 @@ const navItem = [
   // { label: "Hỗ trợ", href: "/ho-tro" },
 ];
 export default function Header() {
+  const [showChatIcons, setShowChatIcons] = useState(false);
+
+  const toggleShowChatIcons = () => {
+    setShowChatIcons(!showChatIcons);
+  };
+
   return (
     <header>
       <div className="bg-[url(/img/header_bg.webp)] py-3 ">
@@ -69,6 +77,47 @@ export default function Header() {
                 <img src="/icon/bar-3.svg" alt="navigation" />
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Chat  */}
+      <div>
+        <div className="fixed bottom-8 right-8 ">
+          {/* icons */}
+          {showChatIcons && (
+            <div className="flex flex-col items-center space-y-2 mt-4">
+              <a href="https://www.facebook.com/profile.php?id=61576923603831" target="_blank">
+                <button className="mb-2 bg-blue-500 text-white p-2 rounded-full shadow hover:scale-105 transition-transform">
+                  <img src="/icon/messenger.svg" className="h-8 w-8" />
+                </button>
+              </a>
+            </div>
+          )}
+
+          {/* toggle */}
+          <div className="h-12 w-12 flex items-center justify-center">
+            {!showChatIcons && (
+              <button
+                className="w-full h-full bg-[#326e51] text-white rounded-full shadow cursor-pointer hover:scale-[1.1]"
+                onClick={toggleShowChatIcons}
+              >
+                <div className="flex flex-col items-center justify-center">
+                  <img src="/icon/comments-solid.svg" className="h-6 w-6"></img>
+                  <span className="text-[9px] font-semibold ">Liên hệ</span>
+                </div>
+              </button>
+            )}
+
+            {showChatIcons && (
+              <button
+                className="w-4/6 h-4/6 bg-[#326e51] rounded-full"
+                onClick={toggleShowChatIcons}
+              >
+                <BanIcon className="w-full h-full" color="silver" />
+                {/* <img src="/icon/comments-solid.svg" className="h-6 w-6"></img> */}
+              </button>
+            )}
           </div>
         </div>
       </div>

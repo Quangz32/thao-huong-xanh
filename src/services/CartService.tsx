@@ -23,7 +23,8 @@ export const addToCart = (productId: string, quantity: number) => {
   });
 
   const existingItem = newCart.find((item) => item.productId === productId);
-  if (existingItem !== null) {
+  console.log("exiting item", JSON.stringify(existingItem));
+  if (!existingItem) {
     newCart.push({
       productId: productId,
       quantity: quantity,
@@ -36,6 +37,12 @@ export const addToCart = (productId: string, quantity: number) => {
 
 export const getCart = (): [any] => {
   return JSON.parse(localStorage.getItem("cart") as string);
+};
+
+export const deleteCartItem = (productId: string) => {
+  const cart = getCart();
+  const filteredCart = cart.filter((item) => item.productId !== productId);
+  localStorage.setItem("cart", JSON.stringify(filteredCart));
 };
 
 export const clearCart = () => {

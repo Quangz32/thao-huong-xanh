@@ -1,7 +1,7 @@
 "use client";
 
 import Layout from "@/components/Layout";
-import { getCart, addToCart, clearCart } from "@/services/CartService";
+import { getCart, addToCart, clearCart, deleteCartItem } from "@/services/CartService";
 import { getProductDetail } from "@/services/ProductService";
 import { HomeIcon, Trash2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -9,6 +9,11 @@ import { useEffect, useState } from "react";
 export default function Page() {
   const BREAD_CRUMB_PARTS = ["Trang chủ", "Giỏ hàng"];
   const [cart, setCart] = useState<any[]>([]);
+
+  const handleDeleteCartItem = (productId: string) => {
+    deleteCartItem(productId);
+    setCart(getCart);
+  };
 
   useEffect(() => {
     setCart(getCart());
@@ -160,7 +165,12 @@ export default function Page() {
                         {/* Name & delete btn */}
                         <div className="flex justify-between mb-3">
                           <span className="text-lime-800 mr-4">{fullItem.name}</span>
-                          <button className="text-current">
+                          <button
+                            className="text-current cursor-pointer"
+                            onClick={() => {
+                              handleDeleteCartItem(item.productId);
+                            }}
+                          >
                             <div className="flex">
                               <Trash2Icon className="text-gray-400" />
                               <span className="text-gray-400">Xoá</span>

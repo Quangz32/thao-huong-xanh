@@ -145,7 +145,7 @@ export default function Page() {
                 </h2>
 
                 {/* Items */}
-                {cart.map((item, index) => {
+                {cart?.map((item, index) => {
                   const fullItem = getProductDetail(item.productId);
                   return (
                     <div key={index} className="flex py-2">

@@ -4,6 +4,7 @@ import Layout from "@/components/Layout";
 import { HomeIcon } from "lucide-react";
 import { getProductDetail } from "@/services/ProductService";
 import { use, useState } from "react";
+import { addToCart } from "@/services/CartService";
 // import { useState } from "react";
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
@@ -19,6 +20,10 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
 
   const handleDecreaseQuantity = () => {
     if (quantity > 1) setQuantity(quantity - 1);
+  };
+
+  const handleAddToCart = () => {
+    addToCart(id, quantity);
   };
 
   const breadcrumbParts = ["Trang chủ", "Sản phẩm", " Xà Bông Dược Liệu Khổ Qua"];
@@ -77,7 +82,9 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                   +
                 </button>
               </div>
-              <button className="text-white font-medium cursor-pointer">Thêm vào giỏ hàng</button>
+              <button onClick={handleAddToCart} className="text-white font-medium cursor-pointer">
+                Thêm vào giỏ hàng
+              </button>
             </div>
 
             {/* overview */}
@@ -100,7 +107,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
               <div className="bg-gray-100 rounded-md p-3 text-sm">
                 <div className="">Thời gian ship dự kiến</div>
                 <ul>
-                  <li className="list-item">• Hà Nội, TP.HCM: 1-2 ngày</li>
+                  <li className="list-item">• Hà Nội: 1-2 ngày</li>
                   <li className="list-item">• Các tỉnh khác: 2-4 ngày</li>
                 </ul>
               </div>

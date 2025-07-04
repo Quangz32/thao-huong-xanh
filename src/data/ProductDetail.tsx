@@ -93,7 +93,7 @@ const productDetails = [
       "Khối lượng": "100gr",
       "Thể chất": "Khối cứng ",
       "Loại da": "Da thường, da mụn, da dầu ",
-      "Thành phần": "Chiết xuất nghệ, dầu dừa, dầu oliu dầu cọ, bơ Shea, Glycerin",
+      "Thành phần": "Chiết xuất vỏ cam, dầu dừa, dầu oliu dầu cọ, bơ Shea, Glycerin",
       "Hạn sử dụng": "6 tháng kể từ ngày mở bao bì sản phẩm ",
     },
     guide: [

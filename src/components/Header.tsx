@@ -1,6 +1,6 @@
 "use client";
 
-import { BanIcon } from "lucide-react";
+import { BanIcon, PhoneIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -67,9 +67,11 @@ export default function Header() {
             </div>
             {/* Cart */}
             <div className="mr-2">
-              <button className="cursor-pointer w-6 h-6">
-                <img src="/icon/cart.svg" alt="cart" />
-              </button>
+              <a href="/gio-hang">
+                <button className="cursor-pointer w-6 h-6">
+                  <img src="/icon/cart.svg" alt="cart" />
+                </button>
+              </a>
             </div>
             {/** navigation: mobile */}
             <div className="sm:hidden">
@@ -90,6 +92,11 @@ export default function Header() {
               <a href="https://www.facebook.com/profile.php?id=61576923603831" target="_blank">
                 <button className="mb-2 bg-blue-500 text-white p-2 rounded-full shadow hover:scale-105 transition-transform">
                   <img src="/icon/messenger.svg" className="h-8 w-8" />
+                </button>
+              </a>
+              <a href="tel:0392942596" target="_blank">
+                <button className="mb-2 bg-green-600 text-white p-2 rounded-full shadow hover:scale-105 transition-transform">
+                  <PhoneIcon className="h-8 w-8" />
                 </button>
               </a>
             </div>

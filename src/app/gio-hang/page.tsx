@@ -3,12 +3,13 @@
 import Layout from "@/components/Layout";
 import { getCart, addToCart, clearCart, deleteCartItem } from "@/services/CartService";
 import { getProductDetail } from "@/services/ProductService";
-import { HomeIcon, Trash2Icon } from "lucide-react";
+import { HomeIcon, ShoppingCart, Trash2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
+import DeliveryInformation from "./DeliveryInformation";
 
 export default function Page() {
   const BREAD_CRUMB_PARTS = ["Trang chủ", "Giỏ hàng"];
-  const [cart, setCart] = useState<any[]>([]);
+  const [cart, setCart] = useState<any[] | null>([]);
 
   const handleDeleteCartItem = (productId: string) => {
     deleteCartItem(productId);
@@ -44,103 +45,7 @@ export default function Page() {
           <div className="flex flex-col-reverse md:flex-row">
             {/* Form (Address...) */}
             <div className="md:w-3/5 mr-4">
-              <h2 className="font-medium text-xl">Thông tin nhận hàng</h2>
-              <form className="mt-4">
-                {/* Name and Phone */}
-                <div className="flex flex-row mb-4">
-                  <div className="flex-1 mr-2">
-                    <input
-                      type="text"
-                      id="fullName"
-                      className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                      placeholder="Họ tên"
-                      required
-                    />
-                  </div>
-                  <div className="flex-1 ml-2">
-                    <input
-                      type="tel"
-                      id="phoneNumber"
-                      className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                      placeholder="Số điện thoại"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Email and Address */}
-                <div className="mb-4">
-                  <input
-                    type="email"
-                    id="email"
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                    placeholder="Địa chỉ email (để nhận thông tin đơn hàng)"
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <input
-                    type="text"
-                    id="address"
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                    placeholder="Địa chỉ (Ví dụ: 123 Hoàng Cầu)"
-                    required
-                  />
-                </div>
-
-                {/* Province, District, and Ward */}
-                <div className="flex flex-row mb-4">
-                  <div className="flex-1 mr-2">
-                    <select
-                      id="province"
-                      className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                      required
-                    >
-                      <option value="">-- Chọn tỉnh/thành phố --</option>
-                      <option value="Hanoi">Hà Nội</option>
-                      <option value="HCM">TP. Hồ Chí Minh</option>
-                    </select>
-                  </div>
-                  <div className="flex-1 mx-2">
-                    <select
-                      id="district"
-                      className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                      required
-                    >
-                      <option value="">-- Chọn quận/huyện --</option>
-                      <option value="HoanKiem">Hoàn Kiếm</option>
-                      <option value="District1">Quận 1</option>
-                    </select>
-                  </div>
-                  <div className="flex-1 ml-2">
-                    <select
-                      id="ward"
-                      className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                      required
-                    >
-                      <option value="">-- Chọn Phường/Xã --</option>
-                      <option value="HoanKiem">Phường A</option>
-                      <option value="District1">Phường B</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <textarea
-                    id="note"
-                    className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                    placeholder="Ghi chú thêm (Ví dụ: Giao giờ hành chính)"
-                    rows={3}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="mt-4 w-full bg-orange-500 text-white font-medium py-2 rounded-md hover:bg-green-700"
-                >
-                  Xác nhận thông tin
-                </button>
-              </form>
+              <DeliveryInformation />
             </div>
             {/* Cart Items */}
             <div className="md:w-2/5">
@@ -150,6 +55,15 @@ export default function Page() {
                 </h2>
 
                 {/* Items */}
+                {(cart == null || cart.length == 0) && (
+                  <>
+                    <span className="text-orange-500">Giỏ hàng trống</span>
+                    <a href="/" className="flex">
+                      <ShoppingCart className="mr-3 "></ShoppingCart>
+                      <span>Đến xem sản phẩm</span>
+                    </a>
+                  </>
+                )}
                 {cart?.map((item, index) => {
                   const fullItem = getProductDetail(item.productId);
                   return (

@@ -35,12 +35,19 @@ export const addToCart = (productId: string, quantity: number) => {
   localStorage.setItem("cart", JSON.stringify(newCart));
 };
 
-export const getCart = (): [any] => {
-  return JSON.parse(localStorage.getItem("cart") as string);
+export const getCart = (): any[] | null => {
+  const cartData = localStorage.getItem("cart");
+  if (!cartData) return null;
+  try {
+    return JSON.parse(cartData);
+  } catch {
+    return null;
+  }
 };
 
 export const deleteCartItem = (productId: string) => {
   const cart = getCart();
+  if (!cart) return;
   const filteredCart = cart.filter((item) => item.productId !== productId);
   localStorage.setItem("cart", JSON.stringify(filteredCart));
 };

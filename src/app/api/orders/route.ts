@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     
     // Validate dữ liệu đầu vào
-    const { fullName, phoneNumber, email, address, note, cartItems } = body;
+    const { fullName, phoneNumber, email, address, note, cartItems, paymentMethod } = body;
     
     if (!fullName || !phoneNumber || !address) {
       return NextResponse.json(
@@ -49,6 +49,8 @@ export async function POST(request: NextRequest) {
       email: email?.trim() || '',
       address: address.trim(),
       note: note?.trim() || '',
+      paymentMethod: paymentMethod.trim(),
+      isPaid: false,
       cartItems,
       totalAmount
     };

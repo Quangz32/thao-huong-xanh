@@ -4,6 +4,8 @@ import { useState } from "react";
 import { getCart, clearCart } from "@/services/CartService";
 import { getProductDetail } from "@/services/ProductService";
 import { useOrder, OrderFormData } from "@/hooks/useOrder";
+import { Flex, Radio, RadioChangeEvent } from "antd";
+import { BoxIcon, PackageCheckIcon, QrCodeIcon, ShipIcon } from "lucide-react";
 
 export default function DeliveryInformation() {
   const { isSubmitting, submitOrder } = useOrder();
@@ -13,6 +15,7 @@ export default function DeliveryInformation() {
     email: "",
     address: "",
     note: "",
+    paymentMethod: "", // COD or QR
   });
   const [message, setMessage] = useState<{
     type: "success" | "error";
@@ -29,6 +32,13 @@ export default function DeliveryInformation() {
     }));
   };
 
+  const onRadioChange = (e: RadioChangeEvent) => {
+    setFormData((prev) => ({
+      ...prev,
+      paymentMethod: e.target.value,
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
@@ -37,7 +47,8 @@ export default function DeliveryInformation() {
     if (
       !formData.fullName.trim() ||
       !formData.phoneNumber.trim() ||
-      !formData.address.trim()
+      !formData.address.trim() ||
+      !formData.paymentMethod.trim()
     ) {
       setMessage({
         type: "error",
@@ -86,6 +97,7 @@ export default function DeliveryInformation() {
         email: "",
         address: "",
         note: "",
+        paymentMethod: "",
       });
 
       // Xóa giỏ hàng
@@ -186,6 +198,40 @@ export default function DeliveryInformation() {
             disabled={isSubmitting}
           />
         </div>
+
+        <div className="flex items-center mb-4">
+          <span className="mr-4 ">Hãy chọn phương thức thanh toán</span>
+          <Radio.Group
+            buttonStyle="solid"
+            onChange={onRadioChange}
+            // value={value}
+            options={[
+              {
+                value: "COD",
+                label: (
+                  <Flex gap="small" justify="center" align="center" vertical>
+                    <PackageCheckIcon style={{ fontSize: 18 }} />
+                    Thanh toán khi nhận hàng
+                  </Flex>
+                ),
+              },
+              {
+                value: "QR",
+                label: (
+                  <Flex gap="small" justify="center" align="center" vertical>
+                    <QrCodeIcon style={{ fontSize: 18 }} />
+                    Thanh toán QR
+                  </Flex>
+                ),
+              },
+            ]}
+          />
+        </div>
+        {formData.paymentMethod === "QR" && (
+          <div className=" mx-auto border border-black w-64 64">
+            <img src="/img/qr-pay.jpg" alt="QR Code" className=" " />
+          </div>
+        )}
 
         <button
           type="submit"

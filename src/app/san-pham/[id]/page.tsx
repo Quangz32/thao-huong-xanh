@@ -20,6 +20,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
 
   const handleChangeOptions = (value: string[]) => {
     console.log("value", value);
+    setError("");
     setSelectedOptions(value);
   };
 

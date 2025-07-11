@@ -7,6 +7,8 @@ export interface OrderData {
   email?: string;
   address: string;
   note?: string;
+  paymentMethod: string;
+  isPaid: boolean;
   cartItems: Array<{
     productId: string;
     quantity: number;

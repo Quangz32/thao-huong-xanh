@@ -6,6 +6,7 @@ export interface OrderFormData {
   email: string;
   address: string;
   note: string;
+  paymentMethod: string;
 }
 
 export interface UseOrderReturn {
@@ -27,6 +28,8 @@ export function useOrder(): UseOrderReturn {
         email: formData.email,
         address: formData.address,
         note: formData.note,
+        paymentMethod: formData.paymentMethod,
+        isPaid: false,  //Mặc định cho đơn hàng
         cartItems: cartItems.map(item => ({
           productId: item.productId,
           quantity: item.quantity,

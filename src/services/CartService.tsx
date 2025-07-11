@@ -57,6 +57,8 @@ export const getCart = (): any[] | null => {
   }
 };
 
+// export const; 
+
 export const deleteCartItem = (deleteIndex: number) => {
   const cart = getCart();
   if (!cart) return;

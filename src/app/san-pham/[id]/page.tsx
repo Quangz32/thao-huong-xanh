@@ -5,14 +5,46 @@ import { HomeIcon } from "lucide-react";
 import { getProductDetail } from "@/services/ProductService";
 import { use, useState } from "react";
 import { addToCart } from "@/services/CartService";
+import { Select } from "antd";
 // import { useState } from "react";
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const productDetail = getProductDetail(id);
-  console.log(productDetail);
+  const maxComboOptions = productDetail.id === "combo-2" ? 2 : 3;
+  // console.log(productDetail);
 
   const [quantity, setQuantity] = useState(1);
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const [error, setError] = useState<string>("");
+
+  const handleChangeOptions = (value: string[]) => {
+    console.log("value", value);
+    setSelectedOptions(value);
+  };
+
+  const comboOptions = [
+    {
+      value: "xa-bong-kho-qua",
+      label: "Xà Bông Dược Liệu Khổ Qua (100g)",
+    },
+    {
+      value: "xa-bong-nghe",
+      label: "Xà Bông Dược Liệu Từ Nghệ (100g)",
+    },
+    {
+      value: "xa-bong-vo-cam",
+      label: "Xà Bông Dược Liệu Vỏ Cam (100g)",
+    },
+    {
+      value: "xa-bong-tra-xanh",
+      label: "Xà Bông Dược Liệu Trà Xanh (100g)",
+    },
+    {
+      value: "xa-bong-cam-thao",
+      label: "Xà Bông Dược Liệu Cam Thảo (100g)",
+    },
+  ];
 
   const handleIncreaseQuantity = () => {
     setQuantity(quantity + 1);
@@ -23,10 +55,37 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   };
 
   const handleAddToCart = () => {
-    addToCart(id, quantity);
+    // combo product
+    if (productDetail.category === "combo") {
+      if (selectedOptions.length !== maxComboOptions) {
+        setError(`Vui lòng chọn ${maxComboOptions} sản phẩm`);
+        return;
+      }
+      setError("");
+      addToCart({
+        productId: productDetail.id,
+        isCombo: true,
+        productIds: selectedOptions,
+        quantity: quantity,
+      });
+      setSelectedOptions([]);
+      setQuantity(1);
+      return;
+    }
+    // single product
+    addToCart({
+      productId: productDetail.id,
+      isCombo: productDetail.category === "combo",
+      productIds: [],
+      quantity: quantity,
+    });
   };
 
-  const breadcrumbParts = ["Trang chủ", "Sản phẩm", " Xà Bông Dược Liệu Khổ Qua"];
+  const breadcrumbParts = [
+    "Trang chủ",
+    "Sản phẩm",
+    " Xà Bông Dược Liệu Khổ Qua",
+  ];
 
   return (
     <Layout>
@@ -39,12 +98,16 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
             <span key={index}>
               <span
                 className={` ${
-                  index === breadcrumbParts.length - 1 ? "text-[#3e6807]" : "text-[#738136]"
+                  index === breadcrumbParts.length - 1
+                    ? "text-[#3e6807]"
+                    : "text-[#738136]"
                 }`}
               >
                 {part}
               </span>
-              {index < breadcrumbParts.length - 1 && <span className="text-[#738136] mx-3">/</span>}
+              {index < breadcrumbParts.length - 1 && (
+                <span className="text-[#738136] mx-3">/</span>
+              )}
             </span>
           ))}
         </div>
@@ -64,10 +127,30 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
             <div className="text-2xl font-medium mt-1 mb-3">
               {productDetail.price.toLocaleString("de-DE")}đ
             </div>
+
+            {/* Combo options*/}
+            {productDetail.category === "combo" && (
+              <div className="mb-3">
+                <Select
+                  mode="multiple"
+                  style={{ width: "100%" }}
+                  placeholder={`Chọn ${maxComboOptions} sản phẩm`}
+                  defaultValue={[]}
+                  onChange={handleChangeOptions}
+                  maxCount={maxComboOptions}
+                  options={comboOptions}
+                />
+                {error && <div className="text-red-500">{error}</div>}
+              </div>
+            )}
+
             {/* button: add to cart */}
             <div className="w-64 h-12 p-2 bg-orange-400 hover:bg-orange-500 rounded-full flex items-center ">
               <div className="bg-white rounded-full px-2 py-0.5 mr-4">
-                <button className="cursor-pointer" onClick={handleDecreaseQuantity}>
+                <button
+                  className="cursor-pointer"
+                  onClick={handleDecreaseQuantity}
+                >
                   -
                 </button>
                 <input
@@ -78,11 +161,17 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                     setQuantity(Number.parseInt(e.target.value));
                   }}
                 />
-                <button className="cursor-pointer" onClick={handleIncreaseQuantity}>
+                <button
+                  className="cursor-pointer"
+                  onClick={handleIncreaseQuantity}
+                >
                   +
                 </button>
               </div>
-              <button onClick={handleAddToCart} className="text-white font-medium cursor-pointer">
+              <button
+                onClick={handleAddToCart}
+                className="text-white font-medium cursor-pointer"
+              >
                 Thêm vào giỏ hàng
               </button>
             </div>
@@ -123,7 +212,9 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
             <p className="mb-4 mt-4">
               <em>
                 <span>
-                  <strong className="text-[#808000]">{productDetail.intro.firstPart}</strong>
+                  <strong className="text-[#808000]">
+                    {productDetail.intro.firstPart}
+                  </strong>
                   {productDetail.intro.secondPart}
                 </span>
               </em>
@@ -140,16 +231,27 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                       <th className="px-4 py-2  text-white w-2/5 border border-gray-300">
                         Thông số
                       </th>
-                      <th className="px-4 py-2  text-white border border-gray-300">Nội dung</th>
+                      <th className="px-4 py-2  text-white border border-gray-300">
+                        Nội dung
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {Object.entries(productDetail.specification).map(([key, value], index) => (
-                      <tr key={key} className={index % 2 !== 0 ? "bg-gray-100" : ""}>
-                        <td className="px-4 py-2 border border-gray-300">{key}</td>
-                        <td className="px-4 py-2 border border-gray-300">{value as string}</td>
-                      </tr>
-                    ))}
+                    {Object.entries(productDetail.specification).map(
+                      ([key, value], index) => (
+                        <tr
+                          key={key}
+                          className={index % 2 !== 0 ? "bg-gray-100" : ""}
+                        >
+                          <td className="px-4 py-2 border border-gray-300">
+                            {key}
+                          </td>
+                          <td className="px-4 py-2 border border-gray-300">
+                            {value as string}
+                          </td>
+                        </tr>
+                      )
+                    )}
                   </tbody>
                 </table>
               </div>

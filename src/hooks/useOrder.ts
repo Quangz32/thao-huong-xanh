@@ -30,6 +30,8 @@ export function useOrder(): UseOrderReturn {
         cartItems: cartItems.map(item => ({
           productId: item.productId,
           quantity: item.quantity,
+          isCombo: item.isCombo,
+          productIds: item.productIds,
           productName: item.productName,
           price: item.price
         }))

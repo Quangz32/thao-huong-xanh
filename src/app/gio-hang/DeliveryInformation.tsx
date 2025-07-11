@@ -61,6 +61,8 @@ export default function DeliveryInformation() {
       const productDetail = getProductDetail(item.productId);
       return {
         productId: item.productId,
+        isCombo: item.isCombo,
+        productIds: item.productIds,
         quantity: item.quantity,
         productName: productDetail.name,
         price: productDetail.price,

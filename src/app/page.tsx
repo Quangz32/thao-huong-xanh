@@ -4,10 +4,28 @@ import Layout from "@/components/Layout";
 import ProductItem from "./ProductItem";
 import products from "@/data/Product";
 import comboes from "@/data/Combo";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Ban } from "lucide-react";
 
 export default function Home() {
+  // Xử lý scroll đến section khi có hash trong URL
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash) {
+      const sectionId = hash.substring(1); // Loại bỏ ký tự #
+      const element = document.getElementById(sectionId);
+      if (element) {
+        // Delay một chút để đảm bảo page đã render xong
+        setTimeout(() => {
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }, 100);
+      }
+    }
+  }, []);
+
   return (
     <Layout>
       {/* Container */}
@@ -18,7 +36,7 @@ export default function Home() {
         </section>
 
         {/* Introduct section */}
-        <section>
+        <section id="gioi-thieu">
           <div className="max-w-7xl mt-8 mx-auto p-2">
             <h2 className="mb-4 text-4xl font-semibold">GIỚI THIỆU</h2>
             <p className="text-lg px-32 italic">
@@ -33,7 +51,7 @@ export default function Home() {
         </section>
 
         {/* Product section */}
-        <section>
+        <section id="san-pham">
           <div className="max-w-7xl mt-8 mx-auto p-2">
             <div className="mb-4 text-4xl font-semibold">SẢN PHẨM</div>
 

@@ -18,8 +18,11 @@ export default function ProductItem({ product, imgRatio = "square" }: Props) {
       <a href={`/san-pham/${product.id}`} className="cursor-pointer">
         <img src={product.img} className={`mb-3 aspect-${imgRatio}`} />
       </a>
-      <h3 className="font-medium mb-3">
-        <a href={`/san-pham/${product.id}`} className="cursor-pointer">
+      <h3 className=" mb-3">
+        <a
+          href={`/san-pham/${product.id}`}
+          className="cursor-pointer text-base font-medium !text-black   "
+        >
           {product.name}
           {/* Xà Bông Dược Liệu Khổ Qua (100g) */}
         </a>

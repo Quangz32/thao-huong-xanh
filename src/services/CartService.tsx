@@ -45,6 +45,9 @@ export const addToCart = (cartItem: CartItem) => {
 
   console.log("newCart", newCart);
   localStorage.setItem("cart", JSON.stringify(newCart));
+
+  // Dispatch custom event để thông báo cart đã thay đổi
+  window.dispatchEvent(new Event("cartUpdated"));
 };
 
 export const getCart = (): any[] | null => {
@@ -57,7 +60,12 @@ export const getCart = (): any[] | null => {
   }
 };
 
-// export const; 
+// Hàm đếm tổng số lượng sản phẩm trong giỏ hàng
+export const getCartItemCount = (): number => {
+  const cart = getCart();
+  if (!cart) return 0;
+  return cart.reduce((total, item) => total + item.quantity, 0);
+};
 
 export const deleteCartItem = (deleteIndex: number) => {
   const cart = getCart();
@@ -65,8 +73,14 @@ export const deleteCartItem = (deleteIndex: number) => {
   const filteredCart = cart.filter((item, index) => index !== deleteIndex);
   console.log("filteredCart", filteredCart);
   localStorage.setItem("cart", JSON.stringify(filteredCart));
+
+  // Dispatch custom event để thông báo cart đã thay đổi
+  window.dispatchEvent(new Event("cartUpdated"));
 };
 
 export const clearCart = () => {
   localStorage.removeItem("cart");
+
+  // Dispatch custom event để thông báo cart đã thay đổi
+  window.dispatchEvent(new Event("cartUpdated"));
 };

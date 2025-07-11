@@ -5,10 +5,10 @@ import { HomeIcon } from "lucide-react";
 import { getProductDetail } from "@/services/ProductService";
 import { use, useState } from "react";
 import { addToCart } from "@/services/CartService";
-import { Select } from "antd";
-// import { useState } from "react";
+import { Select, App } from "antd";
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { message } = App.useApp();
   const { id } = use(params);
   const productDetail = getProductDetail(id);
   const maxComboOptions = productDetail.id === "combo-2" ? 2 : 3;
@@ -17,6 +17,16 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [error, setError] = useState<string>("");
+
+  // Tự động ẩn thông báo sau 3 giây
+  // useEffect(() => {
+  //   if (successMessage) {
+  //     const timer = setTimeout(() => {
+  //       setSuccessMessage("");
+  //     }, 3000);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [successMessage]);
 
   const handleChangeOptions = (value: string[]) => {
     console.log("value", value);
@@ -55,7 +65,14 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     if (quantity > 1) setQuantity(quantity - 1);
   };
 
+  const showSuccessMessage = () => {
+    console.log("Showing success message...");
+    message.success("Sản phẩm đã được thêm vào giỏ hàng!");
+  };
+
   const handleAddToCart = () => {
+    console.log("Adding to cart...");
+
     // combo product
     if (productDetail.category === "combo") {
       if (selectedOptions.length !== maxComboOptions) {
@@ -71,6 +88,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
       });
       setSelectedOptions([]);
       setQuantity(1);
+      showSuccessMessage();
       return;
     }
     // single product
@@ -80,6 +98,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
       productIds: [],
       quantity: quantity,
     });
+    showSuccessMessage();
   };
 
   const breadcrumbParts = [

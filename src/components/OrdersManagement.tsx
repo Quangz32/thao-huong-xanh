@@ -1,8 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAllOrders, OrderWithTimestamp } from "@/services/OrderService";
+import {
+  getAllOrders,
+  OrderWithTimestamp,
+  formatOrderDate,
+} from "@/services/OrderService";
 import { useAuth } from "@/hooks/useAuth";
+import { useOrder } from "@/hooks/useOrder";
 import {
   Table,
   Button,
@@ -17,6 +22,9 @@ import {
   Layout,
   Avatar,
   Statistic,
+  Dropdown,
+  Modal,
+  Select,
 } from "antd";
 import {
   LogoutOutlined,
@@ -25,8 +33,12 @@ import {
   ShoppingCartOutlined,
   UserOutlined,
   DollarOutlined,
+  MoreOutlined,
+  EditOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import type { MenuProps } from "antd";
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
@@ -41,12 +53,24 @@ const statusConfig = {
 
 export default function OrdersManagement() {
   const { user, logout } = useAuth();
+  const { updateOrderStatus, deleteOrder, isUpdating, isDeleting } = useOrder();
   const [orders, setOrders] = useState<OrderWithTimestamp[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<OrderWithTimestamp | null>(
     null
   );
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const [statusUpdateModal, setStatusUpdateModal] = useState<{
+    visible: boolean;
+    orderId: string;
+    code: string;
+    currentStatus: string;
+  }>({
+    visible: false,
+    orderId: "",
+    code: "",
+    currentStatus: "",
+  });
 
   useEffect(() => {
     loadOrders();
@@ -74,27 +98,6 @@ export default function OrdersManagement() {
     }
   };
 
-  const formatDate = (timestamp: any) => {
-    if (!timestamp) return "N/A";
-
-    let date: Date;
-    if (timestamp.seconds) {
-      date = new Date(timestamp.seconds * 1000);
-    } else if (typeof timestamp === "number") {
-      date = new Date(timestamp);
-    } else {
-      date = new Date(timestamp);
-    }
-
-    return date.toLocaleString("vi-VN", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -107,13 +110,74 @@ export default function OrdersManagement() {
     setDrawerVisible(true);
   };
 
+  const handleUpdateStatus = (
+    orderId: string,
+    code: string,
+    currentStatus: string
+  ) => {
+    setStatusUpdateModal({
+      visible: true,
+      orderId,
+      code,
+      currentStatus,
+    });
+  };
+
+  const handleConfirmStatusUpdate = async (newStatus: string) => {
+    try {
+      const result = await updateOrderStatus(
+        statusUpdateModal.orderId,
+        newStatus
+      );
+
+      if (result.success) {
+        message.success("Cập nhật trạng thái đơn hàng thành công");
+        loadOrders(); // Reload để cập nhật dữ liệu
+        setStatusUpdateModal({
+          visible: false,
+          orderId: "",
+          code: "",
+          currentStatus: "",
+        });
+      } else {
+        message.error(result.error || "Có lỗi xảy ra khi cập nhật trạng thái");
+      }
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi cập nhật trạng thái");
+    }
+  };
+
+  const handleDeleteOrder = (orderId: string, customerName: string) => {
+    Modal.confirm({
+      title: "Xác nhận xóa đơn hàng",
+      content: `Bạn có chắc chắn muốn xóa đơn hàng của khách hàng "${customerName}"? Thao tác này không thể hoàn tác.`,
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          const result = await deleteOrder(orderId);
+
+          if (result.success) {
+            message.success("Xóa đơn hàng thành công");
+            loadOrders(); // Reload để cập nhật dữ liệu
+          } else {
+            message.error(result.error || "Có lỗi xảy ra khi xóa đơn hàng");
+          }
+        } catch (error) {
+          message.error("Có lỗi xảy ra khi xóa đơn hàng");
+        }
+      },
+    });
+  };
+
   const columns: ColumnsType<OrderWithTimestamp> = [
     {
       title: "Mã đơn hàng",
-      dataIndex: "orderId",
-      key: "orderId",
+      dataIndex: "code",
+      key: "code",
       width: 120,
-      render: (orderId: string) => <Text code>#{orderId.slice(-8)}</Text>,
+      render: (code: string) => <Text code>{code || "N/A"}</Text>,
     },
     {
       title: "Khách hàng",
@@ -184,22 +248,64 @@ export default function OrdersManagement() {
       dataIndex: "createdAt",
       key: "createdAt",
       width: 160,
-      render: (timestamp: any) => <Text>{formatDate(timestamp)}</Text>,
+      render: (timestamp: any) => <Text>{formatOrderDate(timestamp)}</Text>,
     },
     {
       title: "Hành động",
       key: "action",
-      width: 100,
-      render: (_, record) => (
-        <Button
-          type="primary"
-          icon={<EyeOutlined />}
-          size="small"
-          onClick={() => showOrderDetail(record)}
-        >
-          Xem
-        </Button>
-      ),
+      width: 150,
+      render: (_, record) => {
+        const menuItems: MenuProps["items"] = [
+          {
+            key: "view",
+            label: "Xem chi tiết",
+            icon: <EyeOutlined />,
+            onClick: () => showOrderDetail(record),
+          },
+          {
+            key: "update",
+            label: "Cập nhật trạng thái",
+            icon: <EditOutlined />,
+            onClick: () =>
+              handleUpdateStatus(record.orderId, record.code, record.status),
+          },
+          {
+            type: "divider",
+          },
+          {
+            key: "delete",
+            label: "Xóa đơn hàng",
+            icon: <DeleteOutlined />,
+            danger: true,
+            onClick: () => handleDeleteOrder(record.orderId, record.fullName),
+          },
+        ];
+
+        return (
+          <Space>
+            <Button
+              type="primary"
+              icon={<EyeOutlined />}
+              size="small"
+              onClick={() => showOrderDetail(record)}
+            >
+              Xem
+            </Button>
+            <Dropdown
+              menu={{ items: menuItems }}
+              trigger={["click"]}
+              placement="bottomRight"
+            >
+              <Button
+                type="default"
+                icon={<MoreOutlined />}
+                size="small"
+                loading={isUpdating || isDeleting}
+              />
+            </Dropdown>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -310,13 +416,45 @@ export default function OrdersManagement() {
           title={
             <Space>
               <EyeOutlined />
-              <span>Chi tiết đơn hàng #{selectedOrder?.orderId.slice(-8)}</span>
+              <span>Chi tiết đơn hàng {selectedOrder?.code || "N/A"}</span>
             </Space>
           }
           width={700}
           open={drawerVisible}
           onClose={() => setDrawerVisible(false)}
           destroyOnClose
+          footer={
+            selectedOrder && (
+              <Space>
+                <Button
+                  icon={<EditOutlined />}
+                  onClick={() =>
+                    handleUpdateStatus(
+                      selectedOrder.orderId,
+                      selectedOrder.code,
+                      selectedOrder.status
+                    )
+                  }
+                  loading={isUpdating}
+                >
+                  Cập nhật trạng thái
+                </Button>
+                <Button
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() =>
+                    handleDeleteOrder(
+                      selectedOrder.orderId,
+                      selectedOrder.fullName
+                    )
+                  }
+                  loading={isDeleting}
+                >
+                  Xóa đơn hàng
+                </Button>
+              </Space>
+            )
+          }
         >
           {selectedOrder && (
             <Space direction="vertical" size="large" style={{ width: "100%" }}>
@@ -375,12 +513,28 @@ export default function OrdersManagement() {
               <Card size="small">
                 <Descriptions column={2}>
                   <Descriptions.Item label="Trạng thái" span={2}>
-                    <Tag
-                      color={statusConfig[selectedOrder.status]?.color}
-                      style={{ fontSize: "14px" }}
-                    >
-                      {statusConfig[selectedOrder.status]?.text}
-                    </Tag>
+                    <Space>
+                      <Tag
+                        color={statusConfig[selectedOrder.status]?.color}
+                        style={{ fontSize: "14px" }}
+                      >
+                        {statusConfig[selectedOrder.status]?.text}
+                      </Tag>
+                      <Button
+                        type="link"
+                        size="small"
+                        icon={<EditOutlined />}
+                        onClick={() =>
+                          handleUpdateStatus(
+                            selectedOrder.orderId,
+                            selectedOrder.code,
+                            selectedOrder.status
+                          )
+                        }
+                      >
+                        Cập nhật
+                      </Button>
+                    </Space>
                   </Descriptions.Item>
                   <Descriptions.Item label="Thanh toán">
                     <Space direction="vertical" size={0}>
@@ -401,7 +555,7 @@ export default function OrdersManagement() {
                     </Space>
                   </Descriptions.Item>
                   <Descriptions.Item label="Thời gian đặt">
-                    {formatDate(selectedOrder.createdAt)}
+                    {formatOrderDate(selectedOrder.createdAt)}
                   </Descriptions.Item>
                   <Descriptions.Item label="Tổng cộng" span={2}>
                     <Text strong style={{ fontSize: "18px", color: "#52c41a" }}>
@@ -413,6 +567,80 @@ export default function OrdersManagement() {
             </Space>
           )}
         </Drawer>
+
+        {/* Modal cập nhật trạng thái */}
+        <Modal
+          title="Cập nhật trạng thái đơn hàng"
+          open={statusUpdateModal.visible}
+          onCancel={() =>
+            setStatusUpdateModal({
+              visible: false,
+              orderId: "",
+              code: "",
+              currentStatus: "",
+            })
+          }
+          footer={null}
+          destroyOnClose
+        >
+          <div className="py-4">
+            <p className="mb-4">
+              Đơn hàng:{" "}
+              <span className="font-mono font-bold">
+                {statusUpdateModal.code}
+              </span>
+            </p>
+            <p className="mb-4">
+              Trạng thái hiện tại:
+              <Tag
+                color={
+                  statusConfig[
+                    statusUpdateModal.currentStatus as keyof typeof statusConfig
+                  ]?.color
+                }
+                className="ml-2"
+              >
+                {
+                  statusConfig[
+                    statusUpdateModal.currentStatus as keyof typeof statusConfig
+                  ]?.text
+                }
+              </Tag>
+            </p>
+            <div>
+              <p className="mb-2">Chọn trạng thái mới:</p>
+              <Space direction="vertical" style={{ width: "100%" }}>
+                {Object.entries(statusConfig).map(([status, config]) => (
+                  <Button
+                    key={status}
+                    block
+                    type={
+                      status === statusUpdateModal.currentStatus
+                        ? "default"
+                        : "primary"
+                    }
+                    disabled={status === statusUpdateModal.currentStatus}
+                    loading={isUpdating}
+                    onClick={() => handleConfirmStatusUpdate(status)}
+                    style={{
+                      justifyContent: "flex-start",
+                      borderColor: config.color,
+                      ...(status !== statusUpdateModal.currentStatus && {
+                        backgroundColor: config.color,
+                        borderColor: config.color,
+                      }),
+                    }}
+                  >
+                    <Tag color={config.color} style={{ marginRight: 8 }}>
+                      {config.text}
+                    </Tag>
+                    {status === statusUpdateModal.currentStatus && "(Hiện tại)"}
+                  </Button>
+                ))}
+              </Space>
+            </div>
+          </div>
+        </Modal>
       </Content>
     </Layout>
   );

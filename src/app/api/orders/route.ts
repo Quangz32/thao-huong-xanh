@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { saveOrder, OrderData, calculateTotalAmount } from '@/services/OrderService';
+import { saveOrder, OrderData, calculateTotalAmount, updateOrderStatus, deleteOrder, generateOrderCode } from '@/services/OrderService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,6 +42,9 @@ export async function POST(request: NextRequest) {
     // Tính tổng tiền
     const totalAmount = calculateTotalAmount(cartItems);
 
+    // Tạo mã đơn hàng
+    const orderCode = generateOrderCode();
+
     // Tạo đối tượng đơn hàng
     const orderData: OrderData = {
       fullName: fullName.trim(),
@@ -52,7 +55,8 @@ export async function POST(request: NextRequest) {
       paymentMethod: paymentMethod.trim(),
       isPaid: false,
       cartItems,
-      totalAmount
+      totalAmount,
+      code: orderCode
     };
 
     // Lưu đơn hàng vào Firebase
@@ -62,6 +66,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       orderId,
+      code: orderCode,
+      createdAt: new Date().toISOString(),
       message: 'Đơn hàng đã được tạo thành công'
     }, { status: 201 });
 
@@ -70,6 +76,77 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       error: error instanceof Error ? error.message : 'Có lỗi xảy ra khi tạo đơn hàng'
+    }, { status: 500 });
+  }
+}
+
+// PUT method để cập nhật trạng thái đơn hàng
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { orderId, status } = body;
+
+    // Validate dữ liệu đầu vào
+    if (!orderId || !status) {
+      return NextResponse.json(
+        { error: 'Thiếu thông tin orderId hoặc status' },
+        { status: 400 }
+      );
+    }
+
+    // Validate status values
+    const validStatuses = ['pending', 'confirmed', 'shipping', 'delivered', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: 'Trạng thái không hợp lệ' },
+        { status: 400 }
+      );
+    }
+
+    // Cập nhật trạng thái
+    await updateOrderStatus(orderId, status);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Cập nhật trạng thái đơn hàng thành công'
+    });
+
+  } catch (error) {
+    console.error('Lỗi API cập nhật trạng thái đơn hàng:', error);
+    
+    return NextResponse.json({
+      error: error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật trạng thái đơn hàng'
+    }, { status: 500 });
+  }
+}
+
+// DELETE method để xóa đơn hàng
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const orderId = searchParams.get('orderId');
+
+    // Validate dữ liệu đầu vào
+    if (!orderId) {
+      return NextResponse.json(
+        { error: 'Thiếu thông tin orderId' },
+        { status: 400 }
+      );
+    }
+
+    // Xóa đơn hàng
+    await deleteOrder(orderId);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Xóa đơn hàng thành công'
+    });
+
+  } catch (error) {
+    console.error('Lỗi API xóa đơn hàng:', error);
+    
+    return NextResponse.json({
+      error: error instanceof Error ? error.message : 'Có lỗi xảy ra khi xóa đơn hàng'
     }, { status: 500 });
   }
 } 

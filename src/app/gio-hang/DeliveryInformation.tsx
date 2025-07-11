@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getCart, clearCart } from "@/services/CartService";
 import { getProductDetail } from "@/services/ProductService";
+import { formatOrderDate } from "@/services/OrderService";
 import { useOrder, OrderFormData } from "@/hooks/useOrder";
 import { Flex, Radio, RadioChangeEvent } from "antd";
 import { BoxIcon, PackageCheckIcon, QrCodeIcon, ShipIcon } from "lucide-react";
@@ -20,6 +21,9 @@ export default function DeliveryInformation() {
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
+    orderId?: string;
+    code?: string;
+    createdAt?: string;
   } | null>(null);
 
   const handleInputChange = (
@@ -86,8 +90,10 @@ export default function DeliveryInformation() {
     if (result.success) {
       setMessage({
         type: "success",
-        text: "Đặt hàng thành công!",
-        // text: `Đặt hàng thành công! Mã đơn hàng: ${result.orderId}`,
+        text: `Đặt hàng thành công! Mã đơn hàng: ${result.code}`,
+        orderId: result.orderId,
+        code: result.code,
+        createdAt: result.createdAt,
       });
 
       // Reset form
@@ -122,13 +128,24 @@ export default function DeliveryInformation() {
       {/* Hiển thị thông báo */}
       {message && (
         <div
-          className={`mt-4 p-3 rounded-md ${
+          className={`mt-4 p-4 rounded-md ${
             message.type === "success"
               ? "bg-green-100 text-green-700 border border-green-300"
               : "bg-red-100 text-red-700 border border-red-300"
           }`}
         >
-          {message.text}
+          <div className="font-medium">{message.text}</div>
+          {message.type === "success" && message.code && message.createdAt && (
+            <div className="mt-2 text-sm">
+              <div>
+                Thời gian đặt hàng: {formatOrderDate(message.createdAt)}
+              </div>
+              <div>
+                Bạn có thể liên hệ với chúng tôi bằng mã đơn hàng:{" "}
+                <span className="font-mono font-bold">{message.code}</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

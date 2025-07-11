@@ -75,10 +75,12 @@ export default function Page() {
                           alt={fullItem.name}
                         />
                       </div>
-                      <div className="">
+                      <div className="flex-1 w-full">
                         {/* Name & delete btn */}
                         <div className="flex justify-between mb-3">
-                          <span className="text-lime-800 mr-4">{fullItem.name}</span>
+                          <span className="text-lime-800 mr-4">
+                            {fullItem.name}
+                          </span>
                           <button
                             className="text-current cursor-pointer"
                             onClick={() => {

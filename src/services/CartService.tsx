@@ -1,6 +1,5 @@
 "use client";
 
-import products from "@/data/Product";
 export const addToCart = (productId: string, quantity: number) => {
   const cart = getCart();
   if (cart == null) {

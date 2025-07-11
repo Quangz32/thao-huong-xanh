@@ -73,7 +73,8 @@ export default function DeliveryInformation() {
     if (result.success) {
       setMessage({
         type: "success",
-        text: `Đặt hàng thành công! Mã đơn hàng: ${result.orderId}`,
+        text: "Đặt hàng thành công!",
+        // text: `Đặt hàng thành công! Mã đơn hàng: ${result.orderId}`,
       });
 
       // Reset form

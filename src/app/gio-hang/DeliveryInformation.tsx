@@ -8,7 +8,13 @@ import { useOrder, OrderFormData } from "@/hooks/useOrder";
 import { Flex, Radio, RadioChangeEvent } from "antd";
 import { BoxIcon, PackageCheckIcon, QrCodeIcon, ShipIcon } from "lucide-react";
 
-export default function DeliveryInformation() {
+interface DeliveryInformationProps {
+  onOrderSuccess?: () => void;
+}
+
+export default function DeliveryInformation({
+  onOrderSuccess,
+}: DeliveryInformationProps) {
   const { isSubmitting, submitOrder } = useOrder();
   const [formData, setFormData] = useState<OrderFormData>({
     fullName: "",
@@ -109,10 +115,10 @@ export default function DeliveryInformation() {
       // Xóa giỏ hàng
       clearCart();
 
-      // Reload trang sau 2 giây để cập nhật giỏ hàng
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      // Gọi callback để cập nhật UI giỏ hàng ngay lập tức
+      if (onOrderSuccess) {
+        onOrderSuccess();
+      }
     } else {
       setMessage({
         type: "error",

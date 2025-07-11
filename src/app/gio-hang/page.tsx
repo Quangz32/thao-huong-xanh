@@ -10,6 +10,12 @@ import Cart from "./Cart";
 
 export default function Page() {
   const BREAD_CRUMB_PARTS = ["Trang chủ", "Giỏ hàng"];
+  const [cartKey, setCartKey] = useState(0); // Key để force re-render Cart component
+
+  // Callback để refresh giỏ hàng
+  const refreshCart = () => {
+    setCartKey((prev) => prev + 1);
+  };
 
   return (
     <Layout>
@@ -38,11 +44,11 @@ export default function Page() {
           <div className="flex flex-col-reverse md:flex-row">
             {/* Form (Address...) */}
             <div className="md:w-3/5 mr-4">
-              <DeliveryInformation />
+              <DeliveryInformation onOrderSuccess={refreshCart} />
             </div>
             {/* Cart Items */}
             <div className="md:w-2/5">
-              <Cart />
+              <Cart key={cartKey} onCartUpdate={refreshCart} />
             </div>
           </div>
         </div>

@@ -37,6 +37,7 @@ import {
   EditOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
+import { getProductDetail } from "@/services/ProductService";
 import type { ColumnsType } from "antd/es/table";
 import type { MenuProps } from "antd";
 
@@ -71,6 +72,19 @@ export default function OrdersManagement() {
     code: "",
     currentStatus: "",
   });
+
+  // Helper function để tạo combo label
+  const productNameMap = new Map<string, string>([
+    ["xa-bong-kho-qua", "Khổ Qua"],
+    ["xa-bong-nghe", "Nghệ"],
+    ["xa-bong-vo-cam", "Cam"],
+    ["xa-bong-tra-xanh", "Trà Xanh"],
+    ["xa-bong-cam-thao", "Cam Thảo"],
+  ]);
+
+  const getComboLabel = (productIds: string[]) => {
+    return productIds.map((id) => productNameMap.get(id)).join(", ");
+  };
 
   useEffect(() => {
     loadOrders();
@@ -487,25 +501,51 @@ export default function OrdersManagement() {
               <Card title="Sản phẩm đặt hàng" size="small">
                 <List
                   dataSource={selectedOrder.cartItems}
-                  renderItem={(item, index) => (
-                    <List.Item key={index}>
-                      <List.Item.Meta
-                        avatar={
-                          <Avatar
-                            icon={<ShoppingCartOutlined />}
-                            style={{ backgroundColor: "#52c41a" }}
-                          />
-                        }
-                        title={<Text strong>{item.productName}</Text>}
-                        description={`Số lượng: ${
-                          item.quantity
-                        } | Đơn giá: ${formatCurrency(item.price)}`}
-                      />
-                      <Text strong style={{ color: "#52c41a" }}>
-                        {formatCurrency(item.price * item.quantity)}
-                      </Text>
-                    </List.Item>
-                  )}
+                  renderItem={(item, index) => {
+                    const productDetail = getProductDetail(item.productId);
+                    return (
+                      <List.Item key={index}>
+                        <List.Item.Meta
+                          avatar={
+                            <img
+                              src={
+                                productDetail?.img || "img/img_placeholder.jpeg"
+                              }
+                              alt={item.productName}
+                              style={{
+                                width: 64,
+                                height: 64,
+                                objectFit: "cover",
+                                borderRadius: 8,
+                                border: "1px solid #f0f0f0",
+                              }}
+                            />
+                          }
+                          title={
+                            <div>
+                              <Text strong>{item.productName}</Text>
+                              {item.isCombo && item.productIds && (
+                                <div>
+                                  <Text
+                                    type="secondary"
+                                    style={{ fontSize: 12 }}
+                                  >
+                                    ({getComboLabel(item.productIds)})
+                                  </Text>
+                                </div>
+                              )}
+                            </div>
+                          }
+                          description={`Số lượng: ${
+                            item.quantity
+                          } | Đơn giá: ${formatCurrency(item.price)}`}
+                        />
+                        <Text strong style={{ color: "#52c41a" }}>
+                          {formatCurrency(item.price * item.quantity)}
+                        </Text>
+                      </List.Item>
+                    );
+                  }}
                 />
               </Card>
 

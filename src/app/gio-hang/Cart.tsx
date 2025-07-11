@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { deleteCartItem, getCart } from "@/services/CartService";
 import { getProductDetail } from "@/services/ProductService";
 
-export default function Cart() {
+interface CartProps {
+  onCartUpdate?: () => void;
+}
+
+export default function Cart({ onCartUpdate }: CartProps) {
   const [cart, setCart] = useState<any[] | null>([]);
 
   useEffect(() => {
@@ -14,6 +18,10 @@ export default function Cart() {
   const handleDeleteCartItem = (index: number) => {
     deleteCartItem(index);
     setCart(getCart());
+    // Gọi callback để thông báo cart đã được cập nhật
+    if (onCartUpdate) {
+      onCartUpdate();
+    }
   };
 
   const productNameMap = new Map<string, string>([

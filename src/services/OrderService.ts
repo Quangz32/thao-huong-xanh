@@ -14,6 +14,8 @@ export interface OrderData {
     quantity: number;
     productName: string;
     price: number;
+    isCombo?: boolean;
+    productIds?: string[];
   }>;
   totalAmount: number;
   createdAt?: any; // Firebase serverTimestamp - optional for new orders

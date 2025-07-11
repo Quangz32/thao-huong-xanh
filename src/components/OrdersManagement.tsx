@@ -25,6 +25,7 @@ import {
   Dropdown,
   Modal,
   Select,
+  ConfigProvider,
 } from "antd";
 import {
   LogoutOutlined,
@@ -71,6 +72,16 @@ export default function OrdersManagement() {
     orderId: "",
     code: "",
     currentStatus: "",
+  });
+
+  const [deleteModal, setDeleteModal] = useState<{
+    visible: boolean;
+    orderId: string;
+    customerName: string;
+  }>({
+    visible: false,
+    orderId: "",
+    customerName: "",
   });
 
   // Helper function để tạo combo label
@@ -162,27 +173,32 @@ export default function OrdersManagement() {
   };
 
   const handleDeleteOrder = (orderId: string, customerName: string) => {
-    Modal.confirm({
-      title: "Xác nhận xóa đơn hàng",
-      content: `Bạn có chắc chắn muốn xóa đơn hàng của khách hàng "${customerName}"? Thao tác này không thể hoàn tác.`,
-      okText: "Xóa",
-      okType: "danger",
-      cancelText: "Hủy",
-      onOk: async () => {
-        try {
-          const result = await deleteOrder(orderId);
-
-          if (result.success) {
-            message.success("Xóa đơn hàng thành công");
-            loadOrders(); // Reload để cập nhật dữ liệu
-          } else {
-            message.error(result.error || "Có lỗi xảy ra khi xóa đơn hàng");
-          }
-        } catch (error) {
-          message.error("Có lỗi xảy ra khi xóa đơn hàng");
-        }
-      },
+    console.log("handle Delete " + orderId + "....." + customerName);
+    setDeleteModal({
+      visible: true,
+      orderId,
+      customerName,
     });
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      const result = await deleteOrder(deleteModal.orderId);
+      console.log("result", result);
+      if (result.success) {
+        message.success("Xóa đơn hàng thành công");
+        loadOrders(); // Reload để cập nhật dữ liệu
+        setDeleteModal({
+          visible: false,
+          orderId: "",
+          customerName: "",
+        });
+      } else {
+        message.error(result.error || "Có lỗi xảy ra khi xóa đơn hàng");
+      }
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi xóa đơn hàng");
+    }
   };
 
   const columns: ColumnsType<OrderWithTimestamp> = [
@@ -334,354 +350,407 @@ export default function OrdersManagement() {
   ).length;
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <header className="!bg-[#3e6807]">
-        <div className="flex justify-between items-center py-4 px-16">
-          <div>
-            <div className="text-3xl font-semibold text-white">
-              Quản lí đơn hàng - Thảo Hương Xanh
+    <ConfigProvider
+      theme={{
+        token: {
+          zIndexPopupBase: 1000,
+        },
+        components: {
+          Modal: {
+            zIndexPopupBase: 2000,
+          },
+        },
+      }}
+    >
+      <Layout style={{ minHeight: "100vh" }}>
+        <header className="!bg-[#3e6807]">
+          <div className="flex justify-between items-center py-4 px-16">
+            <div>
+              <div className="text-3xl font-semibold text-white">
+                Quản lí đơn hàng - Thảo Hương Xanh
+              </div>
+              <div className="text-gray-200">Xin chào, {user?.email}</div>
             </div>
-            <div className="text-gray-200">Xin chào, {user?.email}</div>
+            <div className="text-white">
+              <Button
+                type="primary"
+                danger
+                icon={<LogoutOutlined />}
+                onClick={handleLogout}
+              >
+                Đăng xuất
+              </Button>
+            </div>
           </div>
-          <div className="text-white">
-            <Button
-              type="primary"
-              danger
-              icon={<LogoutOutlined />}
-              onClick={handleLogout}
-            >
-              Đăng xuất
-            </Button>
-          </div>
-        </div>
-      </header>
+        </header>
 
-      <Content style={{ padding: "24px" }}>
-        {/* Thống kê */}
-        <div style={{ marginBottom: 24 }}>
-          <Space size="large">
-            <Card>
-              <Statistic
-                title="Tổng đơn hàng"
-                value={totalOrders}
-                prefix={<ShoppingCartOutlined />}
-                valueStyle={{ color: "#1890ff" }}
-              />
-            </Card>
-            <Card>
-              <Statistic
-                title="Chờ xử lý"
-                value={pendingOrders}
-                prefix={<UserOutlined />}
-                valueStyle={{ color: "#faad14" }}
-              />
-            </Card>
-            <Card>
-              <Statistic
-                title="Tổng doanh thu"
-                value={totalRevenue}
-                prefix={<DollarOutlined />}
-                formatter={(value) => formatCurrency(Number(value))}
-                valueStyle={{ color: "#52c41a" }}
-              />
-            </Card>
-          </Space>
-        </div>
-
-        {/* Bảng đơn hàng */}
-        <Card
-          title={
-            <Space>
-              <ShoppingCartOutlined />
-              <span>Danh sách đơn hàng</span>
-            </Space>
-          }
-          extra={
-            <Button
-              type="primary"
-              icon={<ReloadOutlined />}
-              onClick={loadOrders}
-              loading={loading}
-            >
-              Làm mới
-            </Button>
-          }
-        >
-          <Table
-            columns={columns}
-            dataSource={orders}
-            rowKey="orderId"
-            loading={loading}
-            pagination={{
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total, range) =>
-                `${range[0]}-${range[1]} của ${total} đơn hàng`,
-              pageSizeOptions: ["10", "20", "50", "100"],
-              defaultPageSize: 20,
-            }}
-            scroll={{ x: 1200 }}
-            size="middle"
-          />
-        </Card>
-
-        {/* Drawer chi tiết đơn hàng */}
-        <Drawer
-          title={
-            <Space>
-              <EyeOutlined />
-              <span>Chi tiết đơn hàng {selectedOrder?.code || "N/A"}</span>
-            </Space>
-          }
-          width={700}
-          open={drawerVisible}
-          onClose={() => setDrawerVisible(false)}
-          destroyOnClose
-          footer={
-            selectedOrder && (
-              <Space>
-                <Button
-                  icon={<EditOutlined />}
-                  onClick={() =>
-                    handleUpdateStatus(
-                      selectedOrder.orderId,
-                      selectedOrder.code,
-                      selectedOrder.status
-                    )
-                  }
-                  loading={isUpdating}
-                >
-                  Cập nhật trạng thái
-                </Button>
-                <Button
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() =>
-                    handleDeleteOrder(
-                      selectedOrder.orderId,
-                      selectedOrder.fullName
-                    )
-                  }
-                  loading={isDeleting}
-                >
-                  Xóa đơn hàng
-                </Button>
-              </Space>
-            )
-          }
-        >
-          {selectedOrder && (
-            <Space direction="vertical" size="large" style={{ width: "100%" }}>
-              {/* Thông tin khách hàng */}
-              <Card title="Thông tin khách hàng" size="small">
-                <Descriptions column={1}>
-                  <Descriptions.Item label="Họ tên">
-                    <Text strong>{selectedOrder.fullName}</Text>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Số điện thoại">
-                    {selectedOrder.phoneNumber}
-                  </Descriptions.Item>
-                  {selectedOrder.email && (
-                    <Descriptions.Item label="Email">
-                      {selectedOrder.email}
-                    </Descriptions.Item>
-                  )}
-                  <Descriptions.Item label="Địa chỉ">
-                    {selectedOrder.address}
-                  </Descriptions.Item>
-                  {selectedOrder.note && (
-                    <Descriptions.Item label="Ghi chú">
-                      {selectedOrder.note}
-                    </Descriptions.Item>
-                  )}
-                </Descriptions>
-              </Card>
-
-              {/* Sản phẩm */}
-              <Card title="Sản phẩm đặt hàng" size="small">
-                <List
-                  dataSource={selectedOrder.cartItems}
-                  renderItem={(item, index) => {
-                    const productDetail = getProductDetail(item.productId);
-                    return (
-                      <List.Item key={index}>
-                        <List.Item.Meta
-                          avatar={
-                            <img
-                              src={
-                                productDetail?.img || "img/img_placeholder.jpeg"
-                              }
-                              alt={item.productName}
-                              style={{
-                                width: 64,
-                                height: 64,
-                                objectFit: "cover",
-                                borderRadius: 8,
-                                border: "1px solid #f0f0f0",
-                              }}
-                            />
-                          }
-                          title={
-                            <div>
-                              <Text strong>{item.productName}</Text>
-                              {item.isCombo && item.productIds && (
-                                <div>
-                                  <Text
-                                    type="secondary"
-                                    style={{ fontSize: 12 }}
-                                  >
-                                    ({getComboLabel(item.productIds)})
-                                  </Text>
-                                </div>
-                              )}
-                            </div>
-                          }
-                          description={`Số lượng: ${
-                            item.quantity
-                          } | Đơn giá: ${formatCurrency(item.price)}`}
-                        />
-                        <Text strong style={{ color: "#52c41a" }}>
-                          {formatCurrency(item.price * item.quantity)}
-                        </Text>
-                      </List.Item>
-                    );
-                  }}
+        <Content style={{ padding: "24px" }}>
+          {/* Thống kê */}
+          <div style={{ marginBottom: 24 }}>
+            <Space size="large">
+              <Card>
+                <Statistic
+                  title="Tổng đơn hàng"
+                  value={totalOrders}
+                  prefix={<ShoppingCartOutlined />}
+                  valueStyle={{ color: "#1890ff" }}
                 />
               </Card>
-
-              {/* Tổng kết */}
-              <Card size="small">
-                <Descriptions column={2}>
-                  <Descriptions.Item label="Trạng thái" span={2}>
-                    <Space>
-                      <Tag
-                        color={statusConfig[selectedOrder.status]?.color}
-                        style={{ fontSize: "14px" }}
-                      >
-                        {statusConfig[selectedOrder.status]?.text}
-                      </Tag>
-                      <Button
-                        type="link"
-                        size="small"
-                        icon={<EditOutlined />}
-                        onClick={() =>
-                          handleUpdateStatus(
-                            selectedOrder.orderId,
-                            selectedOrder.code,
-                            selectedOrder.status
-                          )
-                        }
-                      >
-                        Cập nhật
-                      </Button>
-                    </Space>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Thanh toán">
-                    <Space direction="vertical" size={0}>
-                      <Tag
-                        color={
-                          selectedOrder.paymentMethod === "COD"
-                            ? "orange"
-                            : "blue"
-                        }
-                      >
-                        {selectedOrder.paymentMethod === "COD"
-                          ? "COD"
-                          : "Chuyển khoản"}
-                      </Tag>
-                      {selectedOrder.isPaid && (
-                        <Tag color="green">Đã thanh toán</Tag>
-                      )}
-                    </Space>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Thời gian đặt">
-                    {formatOrderDate(selectedOrder.createdAt)}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Tổng cộng" span={2}>
-                    <Text strong style={{ fontSize: "18px", color: "#52c41a" }}>
-                      {formatCurrency(selectedOrder.totalAmount)}
-                    </Text>
-                  </Descriptions.Item>
-                </Descriptions>
+              <Card>
+                <Statistic
+                  title="Chờ xử lý"
+                  value={pendingOrders}
+                  prefix={<UserOutlined />}
+                  valueStyle={{ color: "#faad14" }}
+                />
+              </Card>
+              <Card>
+                <Statistic
+                  title="Tổng doanh thu"
+                  value={totalRevenue}
+                  prefix={<DollarOutlined />}
+                  formatter={(value) => formatCurrency(Number(value))}
+                  valueStyle={{ color: "#52c41a" }}
+                />
               </Card>
             </Space>
-          )}
-        </Drawer>
-
-        {/* Modal cập nhật trạng thái */}
-        <Modal
-          title="Cập nhật trạng thái đơn hàng"
-          open={statusUpdateModal.visible}
-          onCancel={() =>
-            setStatusUpdateModal({
-              visible: false,
-              orderId: "",
-              code: "",
-              currentStatus: "",
-            })
-          }
-          footer={null}
-          destroyOnClose
-        >
-          <div className="py-4">
-            <p className="mb-4">
-              Đơn hàng:{" "}
-              <span className="font-mono font-bold">
-                {statusUpdateModal.code}
-              </span>
-            </p>
-            <p className="mb-4">
-              Trạng thái hiện tại:
-              <Tag
-                color={
-                  statusConfig[
-                    statusUpdateModal.currentStatus as keyof typeof statusConfig
-                  ]?.color
-                }
-                className="ml-2"
-              >
-                {
-                  statusConfig[
-                    statusUpdateModal.currentStatus as keyof typeof statusConfig
-                  ]?.text
-                }
-              </Tag>
-            </p>
-            <div>
-              <p className="mb-2">Chọn trạng thái mới:</p>
-              <Space direction="vertical" style={{ width: "100%" }}>
-                {Object.entries(statusConfig).map(([status, config]) => (
-                  <Button
-                    key={status}
-                    block
-                    type={
-                      status === statusUpdateModal.currentStatus
-                        ? "default"
-                        : "primary"
-                    }
-                    disabled={status === statusUpdateModal.currentStatus}
-                    loading={isUpdating}
-                    onClick={() => handleConfirmStatusUpdate(status)}
-                    style={{
-                      justifyContent: "flex-start",
-                      borderColor: config.color,
-                      ...(status !== statusUpdateModal.currentStatus && {
-                        backgroundColor: config.color,
-                        borderColor: config.color,
-                      }),
-                    }}
-                  >
-                    <Tag color={config.color} style={{ marginRight: 8 }}>
-                      {config.text}
-                    </Tag>
-                    {status === statusUpdateModal.currentStatus && "(Hiện tại)"}
-                  </Button>
-                ))}
-              </Space>
-            </div>
           </div>
-        </Modal>
-      </Content>
-    </Layout>
+
+          {/* Bảng đơn hàng */}
+          <Card
+            title={
+              <Space>
+                <ShoppingCartOutlined />
+                <span>Danh sách đơn hàng</span>
+              </Space>
+            }
+            extra={
+              <Button
+                type="primary"
+                icon={<ReloadOutlined />}
+                onClick={loadOrders}
+                loading={loading}
+              >
+                Làm mới
+              </Button>
+            }
+          >
+            <Table
+              columns={columns}
+              dataSource={orders}
+              rowKey="orderId"
+              loading={loading}
+              pagination={{
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total, range) =>
+                  `${range[0]}-${range[1]} của ${total} đơn hàng`,
+                pageSizeOptions: ["10", "20", "50", "100"],
+                defaultPageSize: 20,
+              }}
+              scroll={{ x: 1200 }}
+              size="middle"
+            />
+          </Card>
+
+          {/* Drawer chi tiết đơn hàng */}
+          <Drawer
+            title={
+              <Space>
+                <EyeOutlined />
+                <span>Chi tiết đơn hàng {selectedOrder?.code || "N/A"}</span>
+              </Space>
+            }
+            width={700}
+            open={drawerVisible}
+            onClose={() => setDrawerVisible(false)}
+            destroyOnClose
+            footer={
+              selectedOrder && (
+                <Space>
+                  <Button
+                    icon={<EditOutlined />}
+                    onClick={() =>
+                      handleUpdateStatus(
+                        selectedOrder.orderId,
+                        selectedOrder.code,
+                        selectedOrder.status
+                      )
+                    }
+                    loading={isUpdating}
+                  >
+                    Cập nhật trạng thái
+                  </Button>
+                  <Button
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() =>
+                      handleDeleteOrder(
+                        selectedOrder.orderId,
+                        selectedOrder.fullName
+                      )
+                    }
+                    loading={isDeleting}
+                  >
+                    Xóa đơn hàng
+                  </Button>
+                </Space>
+              )
+            }
+          >
+            {selectedOrder && (
+              <Space
+                direction="vertical"
+                size="large"
+                style={{ width: "100%" }}
+              >
+                {/* Thông tin khách hàng */}
+                <Card title="Thông tin khách hàng" size="small">
+                  <Descriptions column={1}>
+                    <Descriptions.Item label="Họ tên">
+                      <Text strong>{selectedOrder.fullName}</Text>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Số điện thoại">
+                      {selectedOrder.phoneNumber}
+                    </Descriptions.Item>
+                    {selectedOrder.email && (
+                      <Descriptions.Item label="Email">
+                        {selectedOrder.email}
+                      </Descriptions.Item>
+                    )}
+                    <Descriptions.Item label="Địa chỉ">
+                      {selectedOrder.address}
+                    </Descriptions.Item>
+                    {selectedOrder.note && (
+                      <Descriptions.Item label="Ghi chú">
+                        {selectedOrder.note}
+                      </Descriptions.Item>
+                    )}
+                  </Descriptions>
+                </Card>
+
+                {/* Sản phẩm */}
+                <Card title="Sản phẩm đặt hàng" size="small">
+                  <List
+                    dataSource={selectedOrder.cartItems}
+                    renderItem={(item, index) => {
+                      const productDetail = getProductDetail(item.productId);
+                      return (
+                        <List.Item key={index}>
+                          <List.Item.Meta
+                            avatar={
+                              <img
+                                src={
+                                  productDetail?.img ||
+                                  "img/img_placeholder.jpeg"
+                                }
+                                alt={item.productName}
+                                style={{
+                                  width: 64,
+                                  height: 64,
+                                  objectFit: "cover",
+                                  borderRadius: 8,
+                                  border: "1px solid #f0f0f0",
+                                }}
+                              />
+                            }
+                            title={
+                              <div>
+                                <Text strong>{item.productName}</Text>
+                                {item.isCombo && item.productIds && (
+                                  <div>
+                                    <Text
+                                      type="secondary"
+                                      style={{ fontSize: 12 }}
+                                    >
+                                      ({getComboLabel(item.productIds)})
+                                    </Text>
+                                  </div>
+                                )}
+                              </div>
+                            }
+                            description={`Số lượng: ${
+                              item.quantity
+                            } | Đơn giá: ${formatCurrency(item.price)}`}
+                          />
+                          <Text strong style={{ color: "#52c41a" }}>
+                            {formatCurrency(item.price * item.quantity)}
+                          </Text>
+                        </List.Item>
+                      );
+                    }}
+                  />
+                </Card>
+
+                {/* Tổng kết */}
+                <Card size="small">
+                  <Descriptions column={2}>
+                    <Descriptions.Item label="Trạng thái" span={2}>
+                      <Space>
+                        <Tag
+                          color={statusConfig[selectedOrder.status]?.color}
+                          style={{ fontSize: "14px" }}
+                        >
+                          {statusConfig[selectedOrder.status]?.text}
+                        </Tag>
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<EditOutlined />}
+                          onClick={() =>
+                            handleUpdateStatus(
+                              selectedOrder.orderId,
+                              selectedOrder.code,
+                              selectedOrder.status
+                            )
+                          }
+                        >
+                          Cập nhật
+                        </Button>
+                      </Space>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Thanh toán">
+                      <Space direction="vertical" size={0}>
+                        <Tag
+                          color={
+                            selectedOrder.paymentMethod === "COD"
+                              ? "orange"
+                              : "blue"
+                          }
+                        >
+                          {selectedOrder.paymentMethod === "COD"
+                            ? "COD"
+                            : "Chuyển khoản"}
+                        </Tag>
+                        {selectedOrder.isPaid && (
+                          <Tag color="green">Đã thanh toán</Tag>
+                        )}
+                      </Space>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Thời gian đặt">
+                      {formatOrderDate(selectedOrder.createdAt)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Tổng cộng" span={2}>
+                      <Text
+                        strong
+                        style={{ fontSize: "18px", color: "#52c41a" }}
+                      >
+                        {formatCurrency(selectedOrder.totalAmount)}
+                      </Text>
+                    </Descriptions.Item>
+                  </Descriptions>
+                </Card>
+              </Space>
+            )}
+          </Drawer>
+
+          {/* Modal xóa đơn hàng */}
+          <Modal
+            title="Xác nhận xóa đơn hàng"
+            open={deleteModal.visible}
+            onCancel={() =>
+              setDeleteModal({
+                visible: false,
+                orderId: "",
+                customerName: "",
+              })
+            }
+            onOk={handleConfirmDelete}
+            okText="Xóa"
+            okType="danger"
+            cancelText="Hủy"
+            confirmLoading={isDeleting}
+            centered
+            zIndex={2000}
+            maskStyle={{ zIndex: 1999 }}
+          >
+            <p>
+              Bạn có chắc chắn muốn xóa đơn hàng của khách hàng{" "}
+              <strong>"{deleteModal.customerName}"</strong>?
+            </p>
+            <p style={{ color: "#ff4d4f", fontWeight: "500" }}>
+              Thao tác này không thể hoàn tác.
+            </p>
+          </Modal>
+
+          {/* Modal cập nhật trạng thái */}
+          <Modal
+            title="Cập nhật trạng thái đơn hàng"
+            open={statusUpdateModal.visible}
+            onCancel={() =>
+              setStatusUpdateModal({
+                visible: false,
+                orderId: "",
+                code: "",
+                currentStatus: "",
+              })
+            }
+            footer={null}
+            destroyOnClose
+            zIndex={2000}
+            maskStyle={{ zIndex: 1999 }}
+          >
+            <div className="py-4">
+              <p className="mb-4">
+                Đơn hàng:{" "}
+                <span className="font-mono font-bold">
+                  {statusUpdateModal.code}
+                </span>
+              </p>
+              <p className="mb-4">
+                Trạng thái hiện tại:
+                <Tag
+                  color={
+                    statusConfig[
+                      statusUpdateModal.currentStatus as keyof typeof statusConfig
+                    ]?.color
+                  }
+                  className="ml-2"
+                >
+                  {
+                    statusConfig[
+                      statusUpdateModal.currentStatus as keyof typeof statusConfig
+                    ]?.text
+                  }
+                </Tag>
+              </p>
+              <div>
+                <p className="mb-2">Chọn trạng thái mới:</p>
+                <Space direction="vertical" style={{ width: "100%" }}>
+                  {Object.entries(statusConfig).map(([status, config]) => (
+                    <Button
+                      key={status}
+                      block
+                      type={
+                        status === statusUpdateModal.currentStatus
+                          ? "default"
+                          : "primary"
+                      }
+                      disabled={status === statusUpdateModal.currentStatus}
+                      loading={isUpdating}
+                      onClick={() => handleConfirmStatusUpdate(status)}
+                      style={{
+                        justifyContent: "flex-start",
+                        borderColor: config.color,
+                        ...(status !== statusUpdateModal.currentStatus && {
+                          backgroundColor: config.color,
+                          borderColor: config.color,
+                        }),
+                      }}
+                    >
+                      <Tag color={config.color} style={{ marginRight: 8 }}>
+                        {config.text}
+                      </Tag>
+                      {status === statusUpdateModal.currentStatus &&
+                        "(Hiện tại)"}
+                    </Button>
+                  ))}
+                </Space>
+              </div>
+            </div>
+          </Modal>
+        </Content>
+      </Layout>
+    </ConfigProvider>
   );
 }

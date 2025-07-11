@@ -1,5 +1,5 @@
 import { database } from '@/lib/firebase';
-import { ref, push, serverTimestamp } from 'firebase/database';
+import { ref, push, serverTimestamp, get, set } from 'firebase/database';
 
 export interface OrderData {
   fullName: string;
@@ -61,6 +61,61 @@ export async function saveOrder(orderData: OrderData): Promise<string> {
   } catch (error) {
     console.error('Lỗi khi lưu đơn hàng:', error);
     throw error;
+  }
+}
+
+/**
+ * Lấy tất cả đơn hàng từ Firebase Realtime Database
+ * @returns Promise với danh sách đơn hàng
+ */
+export async function getAllOrders(): Promise<OrderWithTimestamp[]> {
+  try {
+    const ordersRef = ref(database, 'orders');
+    
+    const snapshot = await get(ordersRef);
+    
+    if (!snapshot.exists()) {
+      return [];
+    }
+
+    const ordersData = snapshot.val();
+    const orders: OrderWithTimestamp[] = [];
+
+    // Chuyển đổi object thành array và thêm orderId
+    Object.keys(ordersData).forEach(orderId => {
+      orders.push({
+        orderId,
+        ...ordersData[orderId]
+      });
+    });
+
+    // Sắp xếp theo thời gian tạo mới nhất (client-side sorting)
+    return orders.sort((a, b) => {
+      const timeA = a.createdAt || 0;
+      const timeB = b.createdAt || 0;
+      return timeB - timeA; // Sắp xếp giảm dần (mới nhất trước)
+    });
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách đơn hàng:', error);
+    throw new Error('Không thể lấy danh sách đơn hàng');
+  }
+}
+
+/**
+ * Cập nhật trạng thái đơn hàng
+ * @param orderId - ID đơn hàng
+ * @param status - Trạng thái mới
+ */
+export async function updateOrderStatus(
+  orderId: string, 
+  status: 'pending' | 'confirmed' | 'shipping' | 'delivered' | 'cancelled'
+): Promise<void> {
+  try {
+    const orderRef = ref(database, `orders/${orderId}/status`);
+    await set(orderRef, status);
+  } catch (error) {
+    console.error('Lỗi khi cập nhật trạng thái đơn hàng:', error);
+    throw new Error('Không thể cập nhật trạng thái đơn hàng');
   }
 }
 

@@ -21,7 +21,7 @@ export default function Home() {
         <section>
           <div className="max-w-7xl mt-8 mx-auto p-2">
             <h2 className="mb-4 text-4xl font-semibold">GIỚI THIỆU</h2>
-            <p className="text-lg px-32">
+            <p className="text-lg px-32 italic">
               Thảo Hương Xanh tự hào mang đến dòng xà bông dược liệu GreenS+ với
               thành phần hoàn toàn tự nhiên từ khổ qua, trà xanh, nghệ, vỏ cam,
               cam thảo... giúp làm sạch dịu nhẹ và nuôi dưỡng làn da khỏe mạnh.
